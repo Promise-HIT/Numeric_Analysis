@@ -1,0 +1,1825 @@
+\documentclass[11pt]{article}
+\usepackage{xeCJK}
+\usepackage{amsmath,amssymb,amsthm,mathtools}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\geometry{a4paper,margin=1in}
+% \setCJKmainfont{SimSun} % 若 XeLaTeX 环境无该字体，可改为系统中的中文字体或删除此行
+\parindent=0pt
+\parskip=6pt
+
+\title{数值分析复习笔记}
+\author{Promise-HIT}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% -----------------------------
+\section{第一章 非线性方程与方程组的数值解法}
+
+\subsection{\S 1.1 基本概念}
+
+\paragraph{非线性方程定义}
+\begin{itemize}
+  \item 方程形式： $f(x)=0$。
+  \item 若 $f(x)$ 不是一次多项式，称为\textbf{非线性方程}。
+  \item 代数方程： $f(x)=a_0+a_1x+\cdots + a_n x^n = 0$（$n>1$ 时为非线性）。
+\end{itemize}
+
+\paragraph{根与零点}
+\begin{itemize}
+  \item 若 $f(\alpha)=0$，则 $\alpha$ 为 $f(x)=0$ 的\textbf{根}或\textbf{零点}。
+  \item \textbf{重根}：若 $f(x)=(x-\alpha)^r g(x)$，且 $g(\alpha)\neq 0$，
+    \begin{itemize}
+      \item $r\ge 2$：$r$ 重根；
+      \item $r=1$：单根。
+    \end{itemize}
+  \item 重根条件： $f(\alpha)=f'(\alpha)=\cdots=f^{(r-1)}(\alpha)=0$，且 $f^{(r)}(\alpha)\neq 0$。
+\end{itemize}
+
+\paragraph{求根步骤}
+\begin{enumerate}
+  \item 根存在性：判断实根存在性与个数。
+  \item 根的隔离：确定有且仅有一个根的子区间。
+  \item 根的精确化：提高近似解精度。
+\end{enumerate}
+
+% -----------------------------
+\subsection{\S 1.2 二分法（Bisection Method）}
+
+\paragraph{基本思想}
+基于\textbf{介值定理}：若 $f(x)$ 在 $[a,b]$ 连续，且 $f(a)f(b)<0$，则存在 $\xi\in(a,b)$ 使 $f(\xi)=0$。
+不断对分有根区间，直到区间长度小于给定精度。
+
+\paragraph{迭代格式}
+\begin{enumerate}
+  \item 计算中点 $x_n=\dfrac{a_n+b_n}{2}$。
+  \item 若 $f(x_n)=0$，则 $x_n$ 为根。
+  \item 否则，根据 $f(x_n)$ 与 $f(a_n)$ 符号选择新区间。
+\end{enumerate}
+
+\paragraph{误差估计}
+\[
+|x_n-\alpha| \le \frac{b-a}{2^{n+1}}.
+\]
+达到精度 $\varepsilon$ 所需迭代步数：
+\[
+n \ge \left\lfloor \frac{\ln(b-a)-\ln\varepsilon}{\ln 2} -1 \right\rfloor.
+\]
+
+\paragraph{优缺点}
+\begin{itemize}
+  \item 优点：简单、总是收敛。
+  \item 缺点：收敛慢、不能求复根和偶数重根、只能求一个根。
+\end{itemize}
+
+% -----------------------------
+\subsection{\S 1.3 不动点迭代法}
+
+\paragraph{基本思想}
+将 $f(x)=0$ 改写为 $x=\varphi(x)$，迭代格式：
+\[
+x_{i+1}=\varphi(x_i),\quad i=0,1,2,\dots
+\]
+
+\paragraph{全局收敛性（定理 1.2）}
+设 $\varphi(x)$ 在 $[a,b]$ 上具有一阶导数，且满足：
+\begin{enumerate}
+  \item $\forall x\in[a,b],\ \varphi(x)\in[a,b]$；
+  \item 存在 $L<1$，使 $\forall x\in[a,b]$，有 $|\varphi'(x)|\le L$。
+\end{enumerate}
+则对任意 $x_0\in[a,b]$，迭代 $x_{i+1}=\varphi(x_i)$ 收敛于唯一不动点 $\alpha$，且当 $\varphi'(x)$ 在 $[a,b]$ 上连续时，有
+\[
+\lim_{i\to\infty} \frac{x_{i+1}-\alpha}{x_i-\alpha} = \varphi'(\alpha),
+\]
+并有误差估计：
+\[
+|\alpha - x_i| \le \frac{L}{1-L}|x_i-x_{i-1}|,
+\qquad
+|\alpha - x_i| \le \frac{L^i}{1-L}|x_1-x_0|.
+\]
+
+\paragraph{局部收敛性（定理 1.3）}
+若 $\varphi(x)$ 在不动点 $\alpha$ 的邻域内有一阶连续导数，且 $|\varphi'(\alpha)|<1$，则迭代\textbf{局部收敛}。
+
+\paragraph{收敛阶}
+定义：若
+\[
+\lim_{i\to\infty} \frac{|\varepsilon_{i+1}|}{|\varepsilon_i|^p} = c >0,
+\]
+则称为\textbf{$p$ 阶收敛}。其中
+\begin{itemize}
+  \item $p=1$：线性收敛（$c<1$）；
+  \item $p>1$：超线性收敛；
+  \item $p=2$：平方收敛。
+\end{itemize}
+
+\paragraph{收敛阶判定（定理 1.4）}
+若 $\varphi^{(p)}(\alpha)$ 连续，且
+\[
+\varphi(\alpha)=\alpha,\quad \varphi'(\alpha)=\cdots=\varphi^{(p-1)}(\alpha)=0,\quad \varphi^{(p)}(\alpha)\neq 0,
+\]
+则迭代法为\textbf{$p$ 阶收敛}，且
+\[
+\lim_{i\to\infty} \frac{x_{i+1}-\alpha}{(x_i-\alpha)^p} = \frac{1}{p!}\varphi^{(p)}(\alpha).
+\]
+
+% -----------------------------
+\subsection{\S 1.4 Newton 迭代法}
+
+\paragraph{基本格式}
+\[
+x_{i+1} = x_i - \frac{f(x_i)}{f'(x_i)}.
+\]
+
+\paragraph{几何意义}
+用切线近似曲线，求切线与 $x$ 轴交点。
+
+\paragraph{收敛性}
+若 $\alpha$ 是 $f(x)=0$ 的\textbf{单根}，则 Newton 法至少 \textbf{二阶收敛}；若 $\alpha$ 为\textbf{重根}，则仅为\textbf{线性收敛}。
+
+\paragraph{重根处理}
+\subparagraph{重数已知（$r$ 重根）}
+改进格式：
+\[
+x_{i+1} = x_i - r\frac{f(x_i)}{f'(x_i)},
+\]
+具有至少二阶收敛。
+
+\subparagraph{重数未知}
+令 $u(x)=\dfrac{f(x)}{f'(x)}$，则 $\alpha$ 是 $u(x)=0$ 的单根，迭代格式：
+\[
+x_{i+1} = x_i - \frac{u(x_i)}{u'(x_i)}
+= x_i - \frac{f(x_i)f'(x_i)}{[f'(x_i)]^2 - f(x_i)f''(x_i)}.
+\]
+具有至少二阶收敛，但需计算二阶导数。
+
+\paragraph{简化 Newton 法}
+\[
+x_{i+1} = x_i - \frac{f(x_i)}{C},
+\]
+取 $C=f'(x_0)$，避免每次求导。
+
+\paragraph{Newton 下山法}
+\[
+x_{i+1} = x_i - \lambda \frac{f(x_i)}{f'(x_i)},\quad 0<\lambda\le 1,
+\]
+通过调整 $\lambda$ 保证 $|f(x_{i+1})|<|f(x_i)|$，增强全局收敛性。
+
+% -----------------------------
+\subsection{\S 1.5 弦截法（割线法）}
+
+\paragraph{基本格式}
+\[
+x_{i+1} = x_i - \frac{x_i - x_{i-1}}{f(x_i)-f(x_{i-1})} f(x_i).
+\]
+
+\paragraph{特点}
+\begin{itemize}
+  \item 用差商代替导数，避免求导；
+  \item 需要两个初始值 $x_0, x_1$；
+  \item 收敛阶： $p=\dfrac{1+\sqrt{5}}{2}\approx 1.618$。
+\end{itemize}
+
+% -----------------------------
+\subsection{\S 1.6 迭代加速收敛方法}
+
+\paragraph{Aitken 加速方法}
+对于线性收敛序列 $\{x_i\}$：
+\[
+\bar{x}_i = x_i - \frac{(x_{i+1}-x_i)^2}{x_{i+2}-2x_{i+1}+x_i}.
+\]
+
+\paragraph{Steffensen 迭代法}
+结合 Aitken 加速与不动点迭代：
+\[
+\begin{aligned}
+& y_i = \varphi(x_i),\\
+& z_i = \varphi(y_i),\\
+& x_{i+1} = x_i - \frac{(y_i-x_i)^2}{z_i - 2y_i + x_i}.
+\end{aligned}
+\]
+若 $\varphi'(\alpha)\neq 1$ 且 $\varphi'(\alpha)\neq 0$，则\textbf{平方收敛}。
+
+% -----------------------------
+\subsection{\S 1.7 迭代方法的计算效率}
+
+\paragraph{效率指数}
+\[
+EI = p^{\frac{1}{\theta}},
+\]
+其中 $p$：收敛阶，$\theta$：每次迭代的计算量。
+
+\paragraph{Newton 法与弦截法比较}
+\begin{itemize}
+  \item Newton 法： $EI_1 = 2^{\frac{1}{1+\theta_1}}$，$\theta_1$ 为计算 $f'(x)$ 的相对计算量；
+  \item 弦截法： $EI_2 = \dfrac{1+\sqrt{5}}{2}$。
+\end{itemize}
+比较：
+\begin{itemize}
+  \item 若 $\theta_1 < 0.44$，Newton 法更高效；
+  \item 若 $\theta_1 > 0.44$，弦截法更高效。
+\end{itemize}
+
+% -----------------------------
+% \subsection{\S 1.8 解非线性方程组的 Newton 法}
+
+% 方程组： $F(x)=0$，其中 $F:\mathbb{R}^n\to\mathbb{R}^n$。
+
+% \paragraph{Newton 迭代格式}
+% \[
+% x^{(k+1)} = x^{(k)} - [F'(x^{(k)})]^{-1} F(x^{(k)}),
+% \]
+% 其中 $F'(x)$ 为\textbf{Jacobi 矩阵}。
+
+% \paragraph{计算步骤}
+% \begin{enumerate}
+%   \item 解线性方程组： $F'(x^{(k)})\Delta x^{(k)} = -F(x^{(k)})$。
+%   \item 更新： $x^{(k+1)} = x^{(k)} + \Delta x^{(k)}$。
+% \end{enumerate}
+
+% \paragraph{逆 Broyden 方法（秩 1 拟 Newton 法）}
+% \begin{itemize}
+%   \item 避免直接计算和求逆 Jacobi 矩阵；
+%   \item 通过低秩修正近似 $[F'(x)]^{-1}$。
+%   \item 公式可按需查阅讲义（此处省略具体公式）。
+% \end{itemize}
+
+% \paragraph{重点掌握内容总结}
+% \begin{enumerate}
+%   \item 单点迭代法：收敛性判定（全局/局部）、收敛阶计算、效率指数；
+%   \item Newton 迭代法：应用场景、与弦截法效率比较、重根处理；
+%   \item 重根迭代：重数已知和未知情况的处理方法；
+%   \item 逆 Broyden 方法：理解其思想，避免直接计算 Jacobi 矩阵。
+% \end{enumerate}
+
+% -----------------------------
+\section{第二章 线性代数方程组的数值解法}
+
+\subsection{\S 2.1 引言}
+
+\paragraph{线性方程组形式}
+\begin{itemize}
+  \item 矩阵形式： $Ax=b$；
+  \item 其中 $A\in\mathbb{R}^{n\times n}$，$x,b\in\mathbb{R}^n$；
+  \item 若 $|A|\neq 0$，则存在唯一解。
+\end{itemize}
+
+\paragraph{数值解法分类}
+\begin{enumerate}
+  \item 直接法：通过有限步算术运算求出精确解（如 Gauss 消去、矩阵分解等）。
+  \item 迭代法：用极限过程逐次逼近方程组的解（$A=M+N$，构造迭代格式 $x^{(k+1)}=Bx^{(k)}+f$）。
+\end{enumerate}
+
+% -----------------------------
+\subsection{\S 2.2 Gauss 消去法}
+
+\paragraph{基本思想}
+将系数矩阵 $A$ 化为上三角矩阵，然后回代求解。应用于线性方程组求解、行列式、矩阵逆、矩阵秩等。
+
+\paragraph{一般形式}
+消元过程：
+\[
+m_{ik} = \frac{a_{ik}^{(k)}}{a_{kk}^{(k)}},
+\]
+更新元素：
+\[
+\begin{aligned}
+a_{ij}^{(k+1)} &= a_{ij}^{(k)} - m_{ik} a_{kj}^{(k)},\\
+b_i^{(k+1)} &= b_i^{(k)} - m_{ik} b_k^{(k)}.
+\end{aligned}
+\]
+
+回代过程：
+\[
+x_n = \frac{b_n^{(n)}}{a_{nn}^{(n)}},\qquad
+x_k = \frac{ b_k^{(k)} - \sum_{j=k+1}^n a_{kj}^{(k)} x_j }{ a_{kk}^{(k)} }.
+\]
+
+\paragraph{主元与收敛条件}
+主元： $a_{kk}^{(k)}\neq 0,\ k=1,2,\dots,n$。定理：所有主元不为零 $\Leftrightarrow$ 所有顺序主子式不为零。主元计算公式： $a_{11}^{(1)}=D_1$，$a_{kk}^{(k)}=\dfrac{D_k}{D_{k-1}}$。
+
+\paragraph{计算量分析}
+消元过程：
+\[
+\text{乘除法}:\ \frac{2n^3+3n^2-5n}{6},\quad
+\text{加减法}:\ \frac{n^3-n}{3}.
+\]
+回代过程：
+\[
+\text{乘除法}:\ \frac{n^2+n}{2},\quad
+\text{加减法}:\ \frac{n^2-n}{2}.
+\]
+总计算量（近似）：
+\[
+\text{乘除法}:\ \frac{n^3}{3} + n^2 - \frac{n}{3},\qquad
+\text{加减法}:\ \frac{n^3}{3} + \frac{n^2}{2} - \frac{5n}{6}.
+\]
+
+% -----------------------------
+\subsection{\S 2.3 列主元消去法}
+
+\paragraph{问题背景}
+当主元 $|a_{kk}^{(k)}|$ 很小时，舍入误差严重扩散；列主元消去法通过选取列中绝对值最大的元素作为主元来提高稳定性。
+
+\paragraph{方法原理}
+在 $a_{kk}^{(k)},\dots,a_{nk}^{(k)}$ 中选绝对值最大者作为列主元，交换行后进行消元。
+
+\paragraph{算法步骤}
+\begin{enumerate}
+  \item 确定 $r_k$： $\left| a_{r_k,k}^{(k)} \right| = \max_{k\le i\le n} \left| a_{ik}^{(k)} \right|$。
+  \item 若 $a_{r_k,k}^{(k)}\neq 0$，交换 $r_k$ 行和 $k$ 行。
+  \item 用 Gauss 消元法进行消元。
+\end{enumerate}
+
+\paragraph{特点}
+对系数矩阵要求低（只需非奇异），比普通 Gauss 消去法更稳定，是当前直接法中的首选算法。
+
+% -----------------------------
+\subsection{\S 2.4 矩阵三角分解法}
+
+\subsubsection{2.4.1 Doolittle 分解法}
+
+\paragraph{分解形式}
+$A=LU$，其中 $L$ 为单位下三角矩阵，$U$ 为上三角矩阵。
+
+\paragraph{分解公式}
+\[
+\begin{aligned}
+u_{1i} &= a_{1i},\quad i=1,\dots,n,\\
+l_{i1} &= a_{i1}/u_{11},\quad i=2,\dots,n,
+\end{aligned}
+\]
+对 $k=2,\dots,n$：
+\[
+\begin{aligned}
+u_{kj} &= a_{kj} - \sum_{r=1}^{k-1} l_{kr} u_{rj},\quad j=k,\dots,n,\\
+l_{ik} &= \frac{a_{ik} - \sum_{r=1}^{k-1} l_{ir} u_{rk}}{u_{kk}},\quad i=k+1,\dots,n.
+\end{aligned}
+\]
+
+\paragraph{求解步骤}
+\begin{enumerate}
+  \item 分解： $A=LU$。
+  \item 解 $Ly=b$：
+  \[
+  y_1=b_1,\quad y_k = b_k - \sum_{r=1}^{k-1} l_{kr} y_r,\ k=2,\dots,n.
+  \]
+  \item 解 $Ux=y$：
+  \[
+  x_n = y_n/u_{nn},\quad x_k = \frac{y_k - \sum_{r=k+1}^n u_{kr} x_r}{u_{kk}}.
+  \]
+\end{enumerate}
+
+\paragraph{存储优化}
+$L$ 的第 $i$ 列存放在 $A$ 的第 $i$ 列，$U$ 的第 $i$ 行存放在 $A$ 的第 $i$ 行；存储矩阵示意同讲义所示。
+
+\subsubsection{2.4.2 Crout 分解法}
+
+\paragraph{分解形式}
+$A=\hat{L}\hat{U}$，其中 $\hat{L}$ 为下三角矩阵，$\hat{U}$ 为单位上三角矩阵。
+
+\paragraph{分解公式}
+\[
+\begin{aligned}
+\hat{l}_{i1} &= a_{i1},\quad i=1,\dots,n,\\
+\hat{u}_{1j} &= a_{1j}/\hat{l}_{11},\quad j=2,\dots,n,
+\end{aligned}
+\]
+对 $k=2,\dots,n$：
+\[
+\begin{aligned}
+\hat{l}_{ik} &= a_{ik} - \sum_{r=1}^{k-1} \hat{l}_{ir}\hat{u}_{rk},\quad i=k,\dots,n,\\
+\hat{u}_{kj} &= \frac{a_{kj} - \sum_{r=1}^{k-1} \hat{l}_{kr}\hat{u}_{rj}}{\hat{l}_{kk}},\quad j=k+1,\dots,n.
+\end{aligned}
+\]
+
+\paragraph{求解步骤}
+解 $\hat{L}y=b$，再解 $\hat{U}x=y$，公式与 Doolittle 类似（见讲义）。
+
+\subsubsection{2.4.3 平方根法（Cholesky 分解法）}
+
+\paragraph{适用条件}
+系数矩阵 $A$ 对称正定。
+
+\paragraph{分解形式}
+$A=\tilde{L}\tilde{L}^T$，其中 $\tilde{L}$ 为下三角矩阵。
+
+\paragraph{分解公式}
+\[
+\begin{aligned}
+\tilde{l}_{11} &= \sqrt{a_{11}},\\
+\tilde{l}_{i1} &= a_{i1}/\tilde{l}_{11},\quad i=2,\dots,n,\\
+\tilde{l}_{kk} &= \left( a_{kk} - \sum_{r=1}^{k-1} \tilde{l}_{kr}^2 \right)^{1/2},\\
+\tilde{l}_{ik} &= \frac{ a_{ik} - \sum_{r=1}^{k-1} \tilde{l}_{ir}\tilde{l}_{kr} }{\tilde{l}_{kk}},\quad i=k+1,\dots,n.
+\end{aligned}
+\]
+
+\paragraph{求解步骤}
+\begin{enumerate}
+  \item 解 $\tilde{L}y=b$： $y_1=b_1/\tilde{l}_{11}$，$y_k=(b_k - \sum_{r=1}^{k-1}\tilde{l}_{kr} y_r)/\tilde{l}_{kk}$。
+  \item 解 $\tilde{L}^T x = y$：回代求 $x$。
+\end{enumerate}
+
+\paragraph{改进的 Cholesky 分解}
+避免开方运算： $A = LDL^T$，其中 $L$ 为单位下三角矩阵，$D$ 为对角矩阵。
+
+% -----------------------------
+\subsubsection{2.4.4 解三对角方程组的追赶法}
+
+\paragraph{适用条件}
+系数矩阵 $A$ 为三对角矩阵，且满足对角占优条件：
+\begin{enumerate}
+  \item $|b_1| > |c_1| > 0$
+  \item $|b_n| > |a_n| > 0$
+  \item $|b_i| \geq |a_i| + |c_i|,\ a_i,c_i \neq 0,\ i=2,3,\ldots,n-1$
+\end{enumerate}
+
+\paragraph{分解形式}
+$A = \hat{L}\hat{U}$，其中：
+\[
+\hat{L} = 
+\begin{pmatrix}
+\alpha_1 & & & \\
+\gamma_2 & \alpha_2 & & \\
+& \ddots & \ddots & \\
+& & \gamma_n & \alpha_n
+\end{pmatrix},
+\quad
+\hat{U} = 
+\begin{pmatrix}
+1 & \beta_1 & & \\
+& 1 & \beta_2 & \\
+& & \ddots & \ddots \\
+& & & 1 & \beta_{n-1} \\
+& & & & 1
+\end{pmatrix}
+\]
+
+\paragraph{分解公式（追的过程）}
+\[
+\begin{aligned}
+\alpha_1 &= b_1, & \beta_1 &= c_1/b_1 \\
+\alpha_k &= b_k - a_k\beta_{k-1}, & k &= 2,3,\ldots,n \\
+\beta_k &= c_k/\alpha_k, & k &= 2,3,\ldots,n-1
+\end{aligned}
+\]
+
+\paragraph{求解步骤}
+\begin{enumerate}
+  \item 解 $\hat{L}y = d$（追的过程）：
+        \[
+        \begin{aligned}
+        y_1 &= d_1/b_1 \\
+        y_k &= (d_k - a_k y_{k-1})/(b_k - a_k\beta_{k-1}),\quad k=2,3,\ldots,n
+        \end{aligned}
+        \]
+  \item 解 $\hat{U}x = y$（赶的过程）：
+        \[
+        \begin{aligned}
+        x_n &= y_n \\
+        x_k &= y_k - \beta_k x_{k+1},\quad k=n-1,n-2,\ldots,1
+        \end{aligned}
+        \]
+\end{enumerate}
+
+
+
+% -----------------------------
+\subsection{\S 2.5 向量与矩阵范数}
+
+\subsubsection{2.5.1 向量范数}
+
+\paragraph{定义条件}
+\begin{enumerate}
+  \item 非负性： $\|x\|\ge 0$ 且 $\|x\|=0\Leftrightarrow x=0$。
+  \item 齐次性： $\|\lambda x\| = |\lambda|\|x\|$。
+  \item 三角不等式： $\|x+y\| \le \|x\| + \|y\|$。
+\end{enumerate}
+
+\paragraph{常用向量范数}
+\[
+\|x\|_\infty = \max_{1\le i\le n} |x_i|,\quad
+\|x\|_1 = \sum_{i=1}^n |x_i|,\quad
+\|x\|_2 = \left( \sum_{i=1}^n |x_i|^2 \right)^{1/2},
+\]
+以及一般的 $p$-范数：
+\[
+\|x\|_p = \left( \sum_{i=1}^n |x_i|^p \right)^{1/p}.
+\]
+
+\paragraph{重要定理}
+范数连续性；范数等价性（$\mathbb{R}^n$ 上任意两种向量范数等价）；收敛性判定： $\lim_{k\to\infty} x^{(k)}=x \Leftrightarrow \lim_{k\to\infty}\|x-x^{(k)}\|=0$。
+
+\subsubsection{2.5.2 矩阵范数}
+
+\paragraph{定义条件}
+矩阵范数需满足非负性、齐次性、三角不等式及相容性： $\|AB\|\le\|A\|\|B\|$。
+
+\paragraph{常用矩阵范数}
+\[
+\|A\|_F = \left( \sum_{i,j} |a_{ij}|^2 \right)^{1/2}\quad\text{(Frobenius范数)},
+\]
+算子范数定义为
+\[
+\|A\|_v = \sup_{x\neq 0} \frac{\|Ax\|_v}{\|x\|_v}.
+\]
+
+\paragraph{从属范数（算子范数）}
+\[
+\|A\|_\infty = \max_{1\le i\le n} \sum_{j=1}^n |a_{ij}|,\quad
+\|A\|_1 = \max_{1\le j\le n} \sum_{i=1}^n |a_{ij}|,\quad
+\|A\|_2 = \sqrt{\rho(A^TA)}.
+\]
+
+\paragraph{谱半径}
+定义： $\rho(A) = \max_{1\le i\le n} |\lambda_i|$。性质：
+\[
+\rho(A)\le \|A\|\quad(\text{对任意算子范数}),
+\qquad
+\inf_{\|\cdot\|}\|A\| = \rho(A).
+\]
+若 $A$ 实对称，则 $\rho(A)=\|A\|_2$。
+
+\paragraph{矩阵序列收敛}
+\[
+\lim_{k\to\infty} A^k = 0 \iff \rho(A)<1,
+\]
+几何序列 $\sum_{k=0}^\infty A^k$ 收敛 $\iff \rho(A)<1$。
+
+% -----------------------------
+\subsection{\S 2.6 矩阵的条件数与误差分析}
+
+\subsubsection{2.6.1 矩阵的条件数}
+
+\paragraph{定义}
+\[
+\mathrm{cond}(A) = \|A\|\cdot\|A^{-1}\|,
+\]
+满足 $\mathrm{cond}(A)\ge 1$。
+
+\paragraph{常用条件数}
+\[
+\mathrm{cond}_\infty(A)=\|A\|_\infty \|A^{-1}\|_\infty,\qquad
+\mathrm{cond}_2(A)=\|A\|_2\|A^{-1}\|_2 = \sqrt{\frac{\lambda_{\max}(A^TA)}{\lambda_{\min}(A^TA)}}.
+\]
+若 $A$ 实对称： $\mathrm{cond}_2(A)=\dfrac{|\lambda_1|}{|\lambda_n|}$。
+
+\subsubsection{2.6.2 误差分析}
+
+\paragraph{右端项扰动（$b\to b+\delta b$）}
+相对误差估计：
+\[
+\frac{\|\delta x\|}{\|x\|} \le \mathrm{cond}(A) \frac{\|\delta b\|}{\|b\|},
+\qquad
+\frac{\|\delta x\|}{\|x\|} \ge \frac{1}{\mathrm{cond}(A)} \frac{\|\delta b\|}{\|b\|}.
+\]
+
+\paragraph{系数矩阵扰动（$A\to A+\delta A$）}
+相对误差估计：
+\[
+\frac{\|\delta x\|}{\|x\|} \le \frac{ \mathrm{cond}(A)\ \dfrac{\|\delta A\|}{\|A\|} }{ 1 - \mathrm{cond}(A)\ \dfrac{\|\delta A\|}{\|A\|} }.
+\]
+
+\paragraph{同时扰动（$A\to A+\delta A,\ b\to b+\delta b$）}
+相对误差估计：
+\[
+\frac{\|\delta x\|}{\|x\|} \le
+\frac{\mathrm{cond}(A)}{1 - \mathrm{cond}(A)\dfrac{\|\delta A\|}{\|A\|}}
+\left( \frac{\|\delta A\|}{\|A\|} + \frac{\|\delta b\|}{\|b\|} \right).
+\]
+
+\paragraph{病态性分析}
+\begin{itemize}
+  \item $\mathrm{cond}(A)$ 小：良态方程组；
+  \item $\mathrm{cond}(A)$ 大：病态方程组，病态程度随条件数增大而加重；
+  \item 稳定方法可解良态方程组得高精度解，解病态方程组可能得到很差结果。
+\end{itemize}
+
+% -----------------------------
+\subsection{\S 2.7 迭代法基本理论}
+
+\paragraph{迭代法思想}
+构造迭代序列 $\{x^{(k)}\}$，使 $\lim_{k\to\infty} x^{(k)} = x^* = A^{-1}b$。
+
+\paragraph{迭代法分类}
+\begin{enumerate}
+  \item 定常迭代法：Jacobi、Gauss-Seidel、SOR 等；
+  \item 子空间迭代法：CG、MINRES、GMRES、BiCGStab 等。
+\end{enumerate}
+
+\paragraph{迭代格式}
+将 $Ax=b$ 改写为 $x=Bx+g$，迭代格式：
+\[
+x^{(k+1)} = B x^{(k)} + g,\quad k=0,1,2,\dots
+\]
+
+\paragraph{收敛性定理（基本三等价）}
+\begin{enumerate}
+  \item 迭代法收敛；
+  \item $\rho(B)<1$；
+  \item 存在一个矩阵从属范数 $\|\cdot\|$ 使得 $\|B\|<1$。
+\end{enumerate}
+
+\paragraph{误差估计}
+\[
+\|x^{(k)} - x^*\| \le \frac{\|B\|}{1-\|B\|} \|x^{(k)} - x^{(k-1)}\|,
+\]
+\[
+\|x^{(k+1)} - x^{(k)}\| \le \|B\|^k \|x^{(1)} - x^{(0)}\|,
+\]
+\[
+\|x^{(k)} - x^*\| \le \frac{\|B\|^k}{1-\|B\|} \|x^{(1)} - x^{(0)}\|.
+\]
+
+\paragraph{停止条件}
+\begin{enumerate}
+  \item $\|Ax_k - b\| < \varepsilon$；
+  \item $\|x_{k+1} - x_k\| < \varepsilon$；
+  \item 达到最大迭代步数。
+\end{enumerate}
+
+% -----------------------------
+\subsection{\S 2.8 基于矩阵分裂的迭代法}
+
+\paragraph{矩阵分裂}
+$A=M+N$，其中 $M$ 非奇异。迭代格式：
+\[
+M x^{(k+1)} = -N x^{(k)} + b,
+\]
+迭代矩阵： $B = -M^{-1} N$。
+
+\subsubsection{2.8.1 Jacobi 迭代法}
+
+\paragraph{矩阵分裂}
+$A=D+L+U$，取 $M=D,\ N=L+U$。
+
+\paragraph{矩阵形式}
+\[
+x^{(k+1)} = -D^{-1}(L+U) x^{(k)} + D^{-1} b,
+\qquad B_J = -D^{-1}(L+U)=I-D^{-1}A.
+\]
+
+\paragraph{分量形式}
+\[
+x_i^{(k+1)} = \frac{1}{a_{ii}} \Big( b_i - \sum_{j\ne i} a_{ij} x_j^{(k)} \Big),\quad i=1,\dots,n.
+\]
+
+\paragraph{特点}
+更新顺序与 $i$ 无关，适合并行计算。
+
+\subsubsection{2.8.2 Gauss-Seidel 迭代法}
+
+\paragraph{矩阵分裂}
+$M=D+L,\ N=U$。
+
+\paragraph{矩阵形式}
+\[
+x^{(k+1)} = -(D+L)^{-1} U x^{(k)} + (D+L)^{-1} b,
+\qquad B_G = -(D+L)^{-1} U.
+\]
+
+\paragraph{分量形式}
+\[
+x_i^{(k+1)} = \frac{1}{a_{ii}} \Big( b_i - \sum_{j=1}^{i-1} a_{ij} x_j^{(k+1)} - \sum_{j=i+1}^n a_{ij} x_j^{(k)} \Big).
+\]
+
+\paragraph{特点}
+充分利用最新数据，收敛速度通常比 Jacobi 快。
+
+\subsubsection{2.8.3 超松弛迭代法（SOR 方法）}
+
+\paragraph{基本思想}
+将 G-S 迭代结果与上一步结果加权平均，引入松弛因子 $\omega$。
+
+\paragraph{分量形式}
+设先计算 G-S 的中间值 $\bar{x}_i^{(k+1)}$：
+\[
+\bar{x}_i^{(k+1)} = \frac{1}{a_{ii}} \Big( b_i - \sum_{j=1}^{i-1} a_{ij} x_j^{(k+1)} - \sum_{j=i+1}^n a_{ij} x_j^{(k)} \Big),
+\]
+然后
+\[
+x_i^{(k+1)} = \omega \bar{x}_i^{(k+1)} + (1-\omega) x_i^{(k)}.
+\]
+合并形式亦给出在讲义中。
+
+\paragraph{矩阵形式}
+\[
+x^{(k+1)} = (D+\omega L)^{-1} [(1-\omega) D - \omega U] x^{(k)} + \omega (D+\omega L)^{-1} b,
+\]
+迭代矩阵： $B_\omega = (D+\omega L)^{-1} [ (1-\omega)D - \omega U ]$。
+
+\paragraph{特点}
+\begin{itemize}
+  \item $\omega=1$：Gauss-Seidel 方法；
+  \item $\omega>1$：超松弛，可能加速收敛，但存在不稳定风险；
+  \item 最优 $\omega$ 难以确定。
+\end{itemize}
+
+% -----------------------------
+\subsection{\S 2.9 迭代法收敛性判定}
+
+\paragraph{收敛充要条件}
+\begin{itemize}
+  \item Jacobi： $\rho(B_J)<1$；
+  \item G-S： $\rho(B_G)<1$；
+  \item SOR： $\rho(B_\omega)<1$。
+\end{itemize}
+
+\paragraph{收敛充分条件}
+如果存在从属范数 $\|\cdot\|$ 使得对应迭代矩阵范数 $<1$，则收敛（即 $\|B\|<1$）。
+
+\paragraph{对角占优矩阵}
+\begin{itemize}
+  \item 严格对角占优： $\sum_{j\ne i} |a_{ij}| < |a_{ii}|$；
+  \item 弱对角占优： $\sum_{j\ne i} |a_{ij}| \le |a_{ii}|$ 且至少一个严格成立。
+\end{itemize}
+定理：若 $A$ 严格对角占优，则 Jacobi 和 Gauss-Seidel 迭代法都收敛。
+
+\paragraph{对称正定矩阵的收敛条件}
+\begin{itemize}
+  \item Jacobi 收敛的充要条件： $2D-A$ 正定；
+  \item G-S 收敛的充要条件： $A$ 正定；
+  \item SOR 收敛的必要条件： $0<\omega<2$；若 $A$ 对称正定，则 SOR 收敛 $\iff 0<\omega<2$。
+\end{itemize}
+
+% -----------------------------
+\subsection{\S 2.10 梯度法}
+
+\paragraph{基本思想}
+将 $Ax=b$ 的求解转化为二次函数极小化问题：
+\[
+f(x) = \frac{1}{2}(Ax,x) - (b,x).
+\]
+等价性定理： $x^*$ 是 $Ax=b$ 的解 $\iff$ $x^*$ 使 $f(x)$ 取最小值。
+
+\subsubsection{2.10.1 最速下降法}
+
+\paragraph{方向选择}
+沿负梯度方向： $p_k = r^{(k)} = b - A x^{(k)}$。
+
+\paragraph{迭代格式}
+\[
+\alpha_k = \frac{(r^{(k)},r^{(k)})}{(Ar^{(k)},r^{(k)})},\qquad
+x^{(k+1)} = x^{(k)} + \alpha_k r^{(k)},\qquad
+r^{(k+1)} = r^{(k)} - \alpha_k A r^{(k)}.
+\]
+性质： $(r^{(k+1)}, r^{(k)})=0$（相邻残量正交）。
+
+\subsubsection{2.10.2 共轭梯度法（CG）}
+
+\paragraph{基本思想}
+构造 $A$-共轭方向序列，最多 $n$ 步内可得到精确解（对 $n\times n$ 的对称正定矩阵）。
+
+\paragraph{$A$-共轭定义}
+若 $(p,Al)=0$，则称 $p$ 与 $l$ 为 $A$-正交或 $A$-共轭。
+
+\paragraph{算法步骤}
+\begin{enumerate}
+  \item 初始化： $p^{(0)}=r^{(0)}=b-Ax^{(0)}$。
+  \item 对 $k=0,1,2,\dots$：
+  \[
+  \begin{aligned}
+  \alpha_k &= \frac{(r^{(k)},p^{(k)})}{(Ap^{(k)},p^{(k)})},\\
+  x^{(k+1)} &= x^{(k)} + \alpha_k p^{(k)},\\
+  r^{(k+1)} &= r^{(k)} - \alpha_k A p^{(k)},\\
+  \beta_k &= -\frac{(r^{(k+1)},Ap^{(k)})}{(p^{(k)},Ap^{(k)})},\\
+  p^{(k+1)} &= r^{(k+1)} + \beta_k p^{(k)}.
+  \end{aligned}
+  \]
+\end{enumerate}
+
+\paragraph{重要性质}
+$\{r^{(k)}\}$ 构成正交系，$\{p^{(k)}\}$ 构成 $A$-正交系，最多迭代 $n$ 次得到精确解。
+
+\paragraph{重点掌握内容总结}
+\begin{enumerate}
+  \item 向量与矩阵范数：各种范数计算、条件数计算、谱半径性质；
+  \item 三角分解法：Doolittle 分解、Crout 分解的原理与计算；
+  \item 误差分析：会用条件数分析解的相对误差；
+  \item 迭代法：Jacobi、Gauss-Seidel 的矩阵形式、分量形式、迭代矩阵及收敛条件；
+  \item 共轭梯度法：理解其思想、$A$-共轭概念、有限步收敛性质。
+\end{enumerate}
+
+% -----------------------------
+\section{第三章 插值法与数值逼近}
+
+\paragraph{学习重点}
+\begin{enumerate}
+  \item 掌握 Lagrange、Newton 插值及其余项推导与应用；
+  \item 掌握有限差分的定义与性质；
+  \item 掌握 Hermite 插值法、待定系数法及其余项表达式，理解分段插值；
+  \item 理解三次样条函数定义与判别；
+  \item 掌握连续形式的最佳平方逼近与最小二乘法（模型线性化）。
+\end{enumerate}
+
+% -----------------------------
+\subsection{\S 3.1 Lagrange 插值法}
+
+\paragraph{基本思想}
+已知节点 $(x_0,f(x_0)),\dots,(x_n,f(x_n))$，求次数 $\le n$ 的多项式 $p(x)$ 使 $p(x_i)=f(x_i)$。
+
+\paragraph{Lagrange 插值多项式}
+\[
+L_n(x)=\sum_{j=0}^n f(x_j) l_j(x),\qquad
+l_j(x)=\prod_{\substack{k=0\\k\neq j}}^n \frac{x-x_k}{x_j - x_k}.
+\]
+
+\paragraph{插值余项（误差）}
+若 $f\in C^{n+1}[a,b]$，则存在 $\xi_x\in(a,b)$ 使
+\[
+R_n(x)=f(x)-L_n(x) = \frac{f^{(n+1)}(\xi_x)}{(n+1)!}\, \omega_{n+1}(x),\qquad
+\omega_{n+1}(x)=\prod_{i=0}^n (x-x_i).
+\]
+
+% -----------------------------
+补充：Lagrange 插值要点表
+\begin{center}
+\begin{tabular}{@{}ll@{}}
+\toprule
+项目 & 内容 \\
+\midrule
+形式 & $L_n(x)=\sum f(x_j)\prod_{k\ne j}\frac{x-x_k}{x_j-x_k}$ \\
+优点 & 公式简洁，可直接写出插值多项式 \\
+缺点 & 增加节点需重算全部基函数 \\
+误差 & $R_n(x)=\dfrac{f^{(n+1)}(\xi_x)}{(n+1)!}\prod(x-x_i)$ \\
+注意 & 高次插值可能出现 Runge 现象（端点振荡） \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% -----------------------------
+\subsection{\S 3.2 Newton 插值法}
+
+\paragraph{基本形式}
+\[
+N_n(x) = a_0 + a_1 (x - x_0) + a_2 (x - x_0)(x - x_1) + \cdots + a_n (x - x_0)\cdots(x - x_{n-1}).
+\]
+
+\paragraph{差商定义与递推关系}
+零阶差商：
+\[
+f[x_i] = f(x_i)
+\]
+一阶差商：
+\[
+f[x_i, x_j] = \frac{f(x_j) - f(x_i)}{x_j - x_i}
+\]
+高阶差商（递推公式）：
+\[
+f[x_i, x_{i+1}, \dots, x_j] = \frac{f[x_{i+1}, \dots, x_j] - f[x_i, \dots, x_{j-1}]}{x_j - x_i}
+\]
+
+\paragraph{差商与导数的关系}
+若函数 $f(x)$ 在包含节点 $x_0, x_1, \dots, x_n$ 的区间 $[a,b]$ 上具有 $n$ 阶连续导数，则存在 $\xi \in (a,b)$，使得
+\[
+f[x_0, x_1, \dots, x_n] = \frac{f^{(n)}(\xi)}{n!}.
+\]
+特别地，当 $n=1$ 时，
+\[
+f[x_0, x_1] = f'(\xi), \quad \xi \in (x_0, x_1).
+\]
+这一关系表明：差商是导数的离散形式，高阶差商与高阶导数之间通过中值定理建立联系。
+
+\paragraph{差商表的构造}
+差商表用于系统计算各阶差商，格式如下（以 $n=3$ 为例）：
+
+\begin{center}
+\begin{tabular}{c|cccc}
+$x$ & $f[\cdot]$ & $f[\cdot,\cdot]$ & $f[\cdot,\cdot,\cdot]$ & $f[\cdot,\cdot,\cdot,\cdot]$ \\
+\midrule
+$x_0$ & $f[x_0]$ & & & \\
+$x_1$ & $f[x_1]$ & $f[x_0,x_1]$ & & \\
+$x_2$ & $f[x_2]$ & $f[x_1,x_2]$ & $f[x_0,x_1,x_2]$ & \\
+$x_3$ & $f[x_3]$ & $f[x_2,x_3]$ & $f[x_1,x_2,x_3]$ & $f[x_0,x_1,x_2,x_3]$ \\
+\end{tabular}
+\end{center}
+
+计算步骤：
+\begin{enumerate}[label=(\arabic*)]
+    \item 第一列为节点 $x_i$，第二列为函数值 $f[x_i]$；
+    \item 第三列为一阶差商：$f[x_i,x_j] = \dfrac{f[x_j] - f[x_i]}{x_j - x_i}$；
+    \item 第四列为二阶差商：$f[x_i,x_j,x_k] = \dfrac{f[x_j,x_k] - f[x_i,x_j]}{x_k - x_i}$；
+    \item 依此类推，直到 $n$ 阶差商。
+\end{enumerate}
+
+\paragraph{Newton 插值多项式}
+\begin{multline*}
+N_n(x) = f[x_0] + f[x_0,x_1](x - x_0) + f[x_0,x_1,x_2](x - x_0)(x - x_1) \\
++ \cdots + f[x_0,\dots,x_n](x - x_0)\cdots(x - x_{n-1})
+\end{multline*}
+
+\paragraph{插值余项}
+\[
+R_n(x) = f(x) - N_n(x) = f[x,x_0,\dots,x_n] \prod_{i=0}^n (x - x_i)
+\]
+若 $f(x)$ 在 $[a,b]$ 上 $n+1$ 阶可导，则存在 $\xi \in (a,b)$ 使得：
+\[
+f[x,x_0,\dots,x_n] = \frac{f^{(n+1)}(\xi)}{(n+1)!}
+\]
+因此：
+\[
+R_n(x) = \frac{f^{(n+1)}(\xi)}{(n+1)!} \prod_{i=0}^n (x - x_i)
+\]
+
+
+
+
+% -----------------------------
+\subsection{\S 3.3 有限差分与分段插值}
+
+\paragraph{有限差分定义}
+设步长为 $h$，则
+\[
+\begin{aligned}
+\Delta f(x_i) &= f(x_{i+1}) - f(x_i)\quad\text{（前向差分）},\\
+\nabla f(x_i) &= f(x_i) - f(x_{i-1})\quad\text{（后向差分）},\\
+\delta f(x_i) &= f(x_{i+1/2}) - f(x_{i-1/2})\quad\text{（中心差分）}.
+\end{aligned}
+\]
+高阶差分：
+\[
+\Delta^k f(x_i) = \Delta^{k-1} f(x_{i+1}) - \Delta^{k-1} f(x_i).
+\]
+
+\paragraph{差分性质}
+\begin{enumerate}
+  \item 线性性： $\Delta(af+bg)=a\Delta f + b\Delta g$；
+  \item 等距节点下，差分与导数近似： $\Delta f(x_i) \approx h f'(x_i)$；
+  \item 对多项式 $f(x)$，若 $\deg f = n$，则 $\Delta^{n+1} f(x)=0$。
+\end{enumerate}
+
+% -----------------------------
+\subsection{\S 3.4 Hermite 插值与分段插值}
+
+\paragraph{Hermite 插值定义}
+要求函数值与导数值同时相等：
+\[
+p(x_i)=f(x_i),\qquad p'(x_i)=f'(x_i).
+\]
+
+\paragraph{Hermite 插值的一般形式与推导}
+设已知节点 $x_0, x_1, \ldots, x_n$ 上的函数值 $f(x_i)$ 和导数值 $f'(x_i)$，构造 Hermite 插值多项式 $H_{2n+1}(x)$ 满足：
+\[
+H_{2n+1}(x_i) = f(x_i), \quad H'_{2n+1}(x_i) = f'(x_i), \quad i=0,1,\ldots,n.
+\]
+
+\subparagraph{基函数构造方法}
+仿照 Lagrange 插值的思想，设 Hermite 插值多项式为：
+\[
+H_{2n+1}(x) = \sum_{i=0}^n f(x_i)h_i(x) + \sum_{i=0}^n f'(x_i)\bar{h}_i(x)
+\]
+其中 $h_i(x)$ 和 $\bar{h}_i(x)$ 是 Hermite 插值基函数，满足：
+\[
+\begin{aligned}
+h_i(x_j) &= \delta_{ij}, & h'_i(x_j) &= 0, \\
+\bar{h}_i(x_j) &= 0, & \bar{h}'_i(x_j) &= \delta_{ij}.
+\end{aligned}
+\]
+
+\subparagraph{基函数的具体表达式}
+通过分析零点的重数，可以得到基函数的显式表达式：
+\[
+\begin{aligned}
+h_i(x) &= [1 - 2(x-x_i)l'_i(x_i)]l_i^2(x), \\
+\bar{h}_i(x) &= (x-x_i)l_i^2(x),
+\end{aligned}
+\]
+其中 $l_i(x)$ 是 Lagrange 插值基函数：
+\[
+l_i(x) = \prod_{j=0,j\neq i}^n \frac{x-x_j}{x_i-x_j}.
+\]
+
+\subparagraph{推导思路说明}
+\begin{itemize}
+    \item $h_i(x)$ 在 $x_i$ 处取值为 1，在其他节点处为 0，且在所有节点处导数为 0
+    \item $\bar{h}_i(x)$ 在所有节点处取值为 0，在 $x_i$ 处导数为 1，在其他节点处导数为 0
+    \item 通过构造 $[1 - 2(x-x_i)l'_i(x_i)]$ 项来保证 $h'_i(x_i)=0$
+    \item $(x-x_i)$ 项保证 $\bar{h}_i(x_i)=0$，同时配合 $l_i^2(x)$ 保证在其他节点处也为 0
+\end{itemize}
+
+\paragraph{两点三次 Hermite 插值}
+当 $n=1$ 时，即两个节点的情况，上述一般公式退化为：
+\[
+H_3(x) = f(x_0)\alpha_0(x) + f(x_1)\alpha_1(x) + f'(x_0)\beta_0(x) + f'(x_1)\beta_1(x),
+\]
+其中
+\[
+\begin{aligned}
+\alpha_0(x) &= \left(1+2\frac{x-x_0}{x_1-x_0}\right) \left( \frac{x-x_1}{x_0-x_1} \right)^2,\\
+\alpha_1(x) &= \left(1+2\frac{x-x_1}{x_0-x_1}\right) \left( \frac{x-x_0}{x_1-x_0} \right)^2,\\
+\beta_0(x) &= (x-x_0)\left( \frac{x-x_1}{x_0-x_1} \right)^2,\\
+\beta_1(x) &= (x-x_1)\left( \frac{x-x_0}{x_1-x_0} \right)^2.
+\end{aligned}
+\]
+
+\paragraph{余项}
+对于一般的 Hermite 插值，余项公式为：
+\[
+E(x) = \frac{p_{n+1}(x) p_{r+1}(x)}{(n+r+2)!} f^{(n+r+2)}(\zeta).
+\]
+特别地，对于两点三次 Hermite 插值：
+\[
+R_3(x) = \frac{f^{(4)}(\xi)}{4!}(x-x_0)^2(x-x_1)^2, \quad \xi \in (x_0,x_1).
+\]
+
+\paragraph{分段线性插值}
+在每个区间 $[x_i,x_{i+1}]$ 上：
+\[
+\phi_i(x) = f(x_i)\frac{x-x_{i+1}}{x_i-x_{i+1}} + f(x_{i+1})\frac{x-x_i}{x_{i+1}-x_i}.
+\]
+误差估计：
+\[
+|R_i(x)| \le \frac{1}{8}\max |f''(x)|\; h_i^2.
+\]
+% -----------------------------
+\subsection{\S 3.5 三次样条插值}
+
+\paragraph{定义}
+$s(x)$ 在各区间 $[x_{i-1},x_i]$ 上为三次多项式，且 $s\in C^2[a,b]$，满足 $s(x_i)=f(x_i),\ i=0,\dots,n$。
+
+\paragraph{三次样条函数的性质}
+\begin{enumerate}
+    \item \textbf{分段三次多项式性}：在每个子区间 $[x_{i-1},x_i]$ 上，$s(x)$ 是三次多项式
+    \[
+    s_i(x) = a_i + b_i(x-x_i) + c_i(x-x_i)^2 + d_i(x-x_i)^3
+    \]
+    
+    \item \textbf{连续性条件}：在节点处函数值连续
+    \[
+    s(x_i-) = s(x_i+), \quad i=1,2,\ldots,n-1
+    \]
+    
+    \item \textbf{一阶导数连续性}：在节点处一阶导数连续
+    \[
+    s'(x_i-) = s'(x_i+), \quad i=1,2,\ldots,n-1
+    \]
+    
+    \item \textbf{二阶导数连续性}：在节点处二阶导数连续
+    \[
+    s''(x_i-) = s''(x_i+), \quad i=1,2,\ldots,n-1
+    \]
+    
+    \item \textbf{插值条件}：在节点处满足插值要求
+    \[
+    s(x_i) = f(x_i), \quad i=0,1,\ldots,n
+    \]
+    
+    \item \textbf{自由度与约束}：共有 $n$ 个区间，每个区间 4 个参数，共 $4n$ 个自由度；约束条件包括：
+    \begin{itemize}
+        \item 插值条件：$n+1$ 个
+        \item 连续性条件：$3(n-1)$ 个
+        \item 总共约束：$4n-2$ 个
+        \item 需要补充 2 个边界条件才能唯一确定
+    \end{itemize}
+    
+    \item \textbf{收敛性}：当节点间距 $h \to 0$ 时，三次样条插值函数及其一阶、二阶导数均一致收敛于被插值函数及其相应导数
+    
+    \item \textbf{误差估计}：若 $f(x) \in C^4[a,b]$，则
+    \[
+    \|f^{(k)}(x) - s^{(k)}(x)\|_\infty \leq C_k h^{4-k} \|f^{(4)}\|_\infty, \quad k=0,1,2
+    \]
+    其中 $h = \max (x_i - x_{i-1})$
+\end{enumerate}
+
+\paragraph{基本形式}
+\[
+\begin{aligned}
+s(x) =&\ M_{i-1}\frac{(x_i-x)^3}{6h_i} + M_i\frac{(x-x_{i-1})^3}{6h_i} \\
+& + \left( \frac{f_i-f_{i-1}}{h_i} - \frac{h_i}{6}(M_i-M_{i-1}) \right)(x-x_{i-1}) + f_{i-1} - \frac{h_i^2}{6} M_{i-1}.
+\end{aligned}
+\]
+
+\paragraph{三次样条方程}
+\[
+\mu_i M_{i-1} + 2 M_i + \lambda_i M_{i+1} = d_i,
+\]
+其中
+\[
+\mu_i = \frac{h_i}{h_i+h_{i+1}},\quad
+\lambda_i = \frac{h_{i+1}}{h_i+h_{i+1}},
+\]
+\[
+d_i = 6\left[ \frac{f_{i+1}-f_i}{h_{i+1}(h_i+h_{i+1})} - \frac{f_i-f_{i-1}}{h_i(h_i+h_{i+1})} \right].
+\]
+
+\paragraph{常见边界条件}
+\begin{itemize}
+  \item I 型： $s'(a)=f'(a),\ s'(b)=f'(b)$（第一边界条件）；
+  \item II 型： $s''(a)=0,\ s''(b)=0$（自然边界，常用）；
+  \item III 型： 周期样条： $s^{(k)}(a)=s^{(k)}(b),\ k=0,1,2$。
+\end{itemize}
+
+% -----------------------------
+\subsection{\S 3.6 最佳平方逼近与最小二乘法}
+
+\paragraph{连续形式最佳平方逼近}
+求 $p(x)\in\mathrm{span}\{\phi_0,\dots,\phi_n\}$ 使
+\[
+\|f-p\|_2^2 = \int_a^b [f(x)-p(x)]^2 \, dx \quad\text{最小}.
+\]
+正交条件：
+\[
+\int_a^b [f(x)-p(x)] \phi_i(x)\,dx = 0,\quad i=0,\dots,n.
+\]
+
+\paragraph{离散最小二乘法}
+给定样本点 $(x_i,y_i)$，拟合模型：
+\[
+y = a_0 + a_1 \phi_1(x) + \cdots + a_n \phi_n(x),
+\]
+最小化平方误差：
+\[
+S = \sum_{i=1}^m [ y_i - a_0 - a_1 \phi_1(x_i) - \cdots - a_n \phi_n(x_i) ]^2.
+\]
+正规方程：
+\[
+\sum_{i=1}^m \phi_k(x_i)\left[ y_i - \sum_{j=0}^n a_j \phi_j(x_i) \right] = 0.
+\]
+
+\paragraph{模型线性化}
+若模型非线性（如 $y = a e^{bx}$ 或 $y = a x^b$），可取对数线性化：
+\[
+\ln y = \ln a + b x \quad\text{或}\quad \ln y = \ln a + b \ln x,
+\]
+然后应用线性最小二乘法求参数。
+
+\paragraph{最小二乘法总结}
+目标：最小化误差平方和 $\sum (y_i - \hat y_i)^2$；理论基础：正交投影与范数最小化；离散形式正规方程： $\Phi^T \Phi a = \Phi^T y$。
+
+% -----------------------------
+\section{第四章 数值积分}
+
+\subsection{\S 4.1 数值积分的一般概念}
+
+\paragraph{数值积分思想}
+积分中值定理： $\int_a^b f(x)\,dx = f(\xi)(b-a)$，不同 $\xi$ 的取法导致不同求积公式。
+
+\paragraph{基本求积公式}
+左、右、中矩形以及梯形、抛物线（Simpson）公式：
+\[
+\begin{aligned}
+\text{左矩形} &:\ \int_a^b f(x)\,dx \approx (b-a) f(a),\\
+\text{右矩形} &:\ \int_a^b f(x)\,dx \approx (b-a) f(b),\\
+\text{中矩形} &:\ \int_a^b f(x)\,dx \approx (b-a) f\Big(\frac{a+b}{2}\Big),\\
+\text{梯形} &:\ \int_a^b f(x)\,dx \approx \frac{b-a}{2}[f(a)+f(b)],\\
+\text{抛物线} &:\ \int_a^b f(x)\,dx \approx \frac{b-a}{6}\Big[ f(a) + 4 f\Big(\frac{a+b}{2}\Big) + f(b) \Big].
+\end{aligned}
+\]
+
+\paragraph{机械求积公式}
+\[
+\int_a^b f(x)\,dx \approx \sum_{i=0}^n A_i f(x_i),
+\]
+$A_i$ 为求积系数（与 $f$ 无关），$x_i$ 为求积节点。
+
+\paragraph{代数精度}
+定义：若求积公式对所有次数 $\le m$ 的多项式精确成立，而对某个 $m+1$ 次多项式不精确，则称具有 $m$ 次代数精度。验证方法：带入 $1,x,\dots,x^m$ 检验；代数精度定理：求积公式至少具有 $n$ 次代数精度 $\iff$ 它是插值型求积公式。
+
+\paragraph{插值型求积公式系数}
+\[
+A_i = \int_a^b l_i(x)\,dx = \int_a^b \prod_{\substack{j=0\\j\ne i}}^n \frac{x-x_j}{x_i-x_j}\,dx.
+\]
+余项：
+\[
+R[f] = \int_a^b \frac{f^{(n+1)}(\xi)}{(n+1)!} \prod_{j=0}^n (x-x_j)\,dx.
+\]
+
+\paragraph{稳定性}
+若求积系数 $A_k>0$（$k=0,\dots,n$），则求积公式是稳定的。
+
+% -----------------------------
+\subsection{\S 4.2 Newton--Cotes 公式}
+
+等距节点 $x_i = a+i h,\ h=(b-a)/n$，
+\[
+\int_a^b f(x)\,dx \approx (b-a) \sum_{i=0}^n C_i^{(n)} f(x_i),
+\]
+Cotes 系数：
+\[
+C_i^{(n)} = \frac{(-1)^{n-i}}{n\cdot i!(n-i)!} \int_0^n \prod_{\substack{j=0\\j\ne i}}^n (t-j)\,dt.
+\]
+
+常用公式：
+\begin{itemize}
+  \item 梯形公式（$n=1$）：
+  \[
+  \int_a^b f(x)\,dx \approx \frac{b-a}{2}[f(a)+f(b)],
+  \]
+  代数精度：1；余项： $R_T(f) = -\dfrac{(b-a)^3}{12} f''(\eta)$。
+
+  \item Simpson 公式（$n=2$）：
+  \[
+  \int_a^b f(x)\,dx \approx \frac{b-a}{6}\Big[ f(a) + 4 f\Big(\frac{a+b}{2}\Big) + f(b) \Big],
+  \]
+  代数精度：3；余项： $R_S(f) = -\dfrac{(b-a)^5}{2880} f^{(4)}(\eta)$。
+
+  \item Cotes 公式（$n=4$）：
+  \[
+  \int_a^b f(x)\,dx \approx \frac{b-a}{90}\big[7f(x_0)+32f(x_1)+12f(x_2)+32f(x_3)+7f(x_4)\big].
+  \]
+\end{itemize}
+
+代数精度定理：
+\begin{itemize}
+  \item 若 $n$ 为奇数，则至少具有 $n$ 次代数精度；
+  \item 若 $n$ 为偶数，则至少具有 $n+1$ 次代数精度。
+\end{itemize}
+
+% -----------------------------
+\subsection{\S 4.3 复化求积公式}
+
+\paragraph{复化梯形公式}
+将 $[a,b]$ 等分为 $n$ 段，$h=(b-a)/n$：
+\[
+T_n = \frac{h}{2}\Big[f(a)+f(b)+2\sum_{k=1}^{n-1} f(a+kh)\Big],
+\]
+余项：
+\[
+R(f;T_n) = -\frac{b-a}{12} h^2 f''(\eta),\quad \eta\in[a,b].
+\]
+
+\paragraph{复化 Simpson 公式}
+\[
+S_n = \frac{h}{6}\Big[ f(a) + 4\sum_{k=0}^{n-1} f\big(x_{k+\tfrac{1}{2}}\big) + 2\sum_{k=1}^{n-1} f(x_k) + f(b) \Big],
+\]
+余项：
+\[
+E(f;S_n) = -\frac{b-a}{2880} h^4 f^{(4)}(\eta),\quad \eta\in(a,b).
+\]
+
+% -----------------------------
+\subsection{\S 4.4 Romberg 求积法}
+
+\paragraph{梯形法递推公式}
+\[
+T_{2n} = \frac{1}{2} T_n + \frac{h}{2} \sum_{k=0}^{n-1} f\big( x_{k+\tfrac{1}{2}} \big).
+\]
+
+\paragraph{Romberg 递推公式}
+\[
+T_m^{(k)} = \frac{4^m}{4^m-1} T_{m-1}^{(k+1)} - \frac{1}{4^m-1} T_{m-1}^{(k)}.
+\]
+其中 $T_0^{(k)}$ 为二分 $k$ 次后的梯形值，$T_m^{(k)}$ 为序列的 $m$ 次加速值。
+
+\paragraph{给定误差的 Romberg 计算步骤}
+\begin{enumerate}
+  \item 初始化：取 $k=0,\ h=b-a$，计算 $T_0^{(0)}=\dfrac{h}{2}[f(a)+f(b)]$。
+  \item 区间二分：令 $k=1,2,\dots$，按递推公式计算梯形值 $T_0^{(k)}$。
+  \item 外推加速：按 Romberg 公式计算 $T_m^{(k)}$。
+  \item 误差控制：当 $|T_m^{(k)}-T_{m-1}^{(k)}|<\varepsilon$ 时停止计算，取 $T_m^{(k)}$ 为积分近似值。
+\end{enumerate}
+
+% -----------------------------
+\subsection{\S 4.5 Gauss 求积公式}
+
+\paragraph{基本理论}
+定理：$n+1$ 个节点的机械求积公式的代数精度不能超过 $2n+1$。Gauss 求积公式即在 $n+1$ 个节点下达到最高代数精度 $2n+1$。
+
+\paragraph{Gauss 点判定}
+节点 $x_k$ 为 Gauss 点 $\iff$ 多项式
+\[
+\omega_{n+1}(x)=(x-x_0)\cdots(x-x_n)
+\]
+与任意次数 $\le n$ 的多项式 $P(x)$ 正交：
+\[
+\int_a^b P(x)\omega_{n+1}(x)\,dx = 0.
+\]
+
+\paragraph{重要性质}
+\begin{itemize}
+  \item Gauss 求积系数 $A_k > 0$；
+  \item Gauss 求积公式数值稳定且收敛。
+\end{itemize}
+
+\paragraph{Gauss--Legendre 公式示例}
+\begin{itemize}
+  \item 两点公式（区间 $[-1,1]$）：
+  \[
+  \int_{-1}^1 f(x)\,dx \approx f\Big(-\frac{1}{\sqrt{3}}\Big) + f\Big(\frac{1}{\sqrt{3}}\Big).
+  \]
+  \item 三点公式（区间 $[-1,1]$）：
+  \[
+  \int_{-1}^1 f(x)\,dx \approx \frac{5}{9} f\Big(-\sqrt{\frac{3}{5}}\Big) + \frac{8}{9} f(0) + \frac{5}{9} f\Big(\sqrt{\frac{3}{5}}\Big).
+  \]
+\end{itemize}
+
+\paragraph{一般区间转换}
+对 $[a,b]$，令
+\[
+x = \frac{b-a}{2} t + \frac{a+b}{2},
+\]
+则
+\[
+\int_a^b f(x)\,dx = \frac{b-a}{2} \int_{-1}^1 f\Big(\frac{b-a}{2} t + \frac{a+b}{2}\Big)\,dt.
+\]
+转换后 Gauss 点：
+\[
+x_k = \frac{b-a}{2} t_k + \frac{a+b}{2},\qquad \tilde{A}_k = \frac{b-a}{2} A_k.
+\]
+
+\paragraph{复化 Gauss 公式}
+将区间分割为若干小区间，在每个小区间上使用低次 Gauss 公式：
+\[
+\int_a^b f(x)\,dx \approx \sum_{i=0}^{m-1} \sum_{k=0}^{n_i} \tilde{A}_{k,i} f(x_{k,i}).
+\]
+
+\paragraph{重点掌握内容}
+代数精度、梯形和 Simpson 的形式/余项、复化求积的余项估计、Gauss 求积（两点/三点）、Romberg 方法的递推与误差控制。
+
+% -----------------------------
+\section{第五章 矩阵特征值与特征向量的计算}
+
+\paragraph{学习重点}
+\begin{enumerate}
+  \item 掌握幂法（Power Method）的基本原理、步骤与收敛条件；
+  \item 掌握反幂法（Inverse Power Method）的实现；
+  \item 理解 Gershgorin 圆盘定理（圆盘定理）及其应用。
+\end{enumerate}
+
+% -----------------------------
+\subsection{\S 5.1 幂法（Power Method）}
+
+\paragraph{基本思想}
+用于求矩阵 $A$ 的按模最大特征值及对应特征向量。设 $A$ 有 $n$ 个线性无关特征向量 $x_1,\dots,x_n$，对应特征值
+\[
+|\lambda_1|>|\lambda_2|\ge\cdots\ge|\lambda_n|.
+\]
+任意初始向量 $v_0$ 可表示为
+\[
+v_0 = a_1 x_1 + \cdots + a_n x_n.
+\]
+连续迭代：
+\[
+v_m = A^m v_0 = a_1 \lambda_1^m x_1 + \cdots + a_n \lambda_n^m x_n.
+\]
+当 $m\to\infty$ 且 $a_1\neq 0$ 时，
+\[
+\frac{v_m}{\lambda_1^m} \to a_1 x_1,
+\]
+方向上收敛于主特征向量 $x_1$。
+
+\paragraph{幂法算法步骤}
+\begin{enumerate}
+  \item 取初始向量 $v_0$（不与 $x_1$ 正交）；
+  \item 计算：
+  \[
+  \begin{cases}
+  v_m = A u_{m-1},\\
+  \mu_m = \max(v_m),\\
+  u_m = v_m / \mu_m.
+  \end{cases}
+  \]
+  \item 当 $u_m$ 收敛时， $\lambda_1 \approx \mu_m,\ x_1\approx u_m$。
+\end{enumerate}
+
+\paragraph{收敛原理}
+每次迭代后取向量的主分量比值或标量因子即可近似主特征值；收敛速度与 $|\lambda_2/\lambda_1|$ 有关。
+
+% -----------------------------
+\subsection{\S 5.2 反幂法（Inverse Power Method）}
+
+\paragraph{基本思想}
+若 $A$ 的特征值为 $\lambda_1,\dots,\lambda_n$，则 $A^{-1}$ 的特征值为 $1/\lambda_1,\dots,1/\lambda_n$。因此，计算 $A$ 的最小模特征值等价于对 $A^{-1}$ 使用幂法。
+
+\paragraph{反幂法迭代形式}
+每步需解线性方程
+\[
+A w_m = u_{m-1},\quad v_m = w_m,
+\]
+并归一化：
+\[
+\mu_m = \max(v_m),\quad u_m = v_m/\mu_m.
+\]
+当 $m\to\infty$ 时，
+\[
+u_m \to \frac{x_n}{\max(x_n)},\quad \mu_m \to \frac{1}{\lambda_n},
+\]
+于是 $\lambda_n \approx 1/\mu_m$。
+
+\paragraph{优缺点}
+优点：能求最小特征值；缺点：每步需解线性方程（计算量大）。可用位移反幂法求指定特征值。
+
+% -----------------------------
+% \subsection{\S 5.3 Gershgorin 圆盘定理（圆盘定理）}
+
+% \paragraph{定理内容}
+% 设 $A=(a_{ij})$，定义
+% \[
+% R_i = \sum_{j\ne i} |a_{ij}|.
+% \]
+% 则 $A$ 的全部特征值 $\lambda$ 均位于复平面上的 $n$ 个圆盘内：
+% \[
+% |\lambda - a_{ii}| \le R_i,\quad i=1,\dots,n.
+% \]
+% 这些圆盘称为 \textbf{Gershgorin 圆盘}。
+
+% \paragraph{推论与应用}
+% \begin{enumerate}
+%   \item 若某个圆盘与其它圆盘不相交，则该圆盘内恰有一个特征值。
+%   \item 可用来估计矩阵特征值范围与收敛区域。
+%   \item 可用于判断矩阵是否为正定或稳定（如用于迭代法收敛性分析）。
+% \end{enumerate}
+
+% -----------------------------
+\section{第六章 常微分方程数值解法}
+
+\subsection{\S 6.1 引言}
+
+常微分方程初值问题：
+\[
+\begin{cases}
+y'(x) = f(x,y), & a<x\le b,\\
+y(a)=y_0.
+\end{cases}
+\]
+
+数值解法分类：单步法（只用前一步信息）和多步法（用多个前步信息）。研究重点：方法推导、收敛性与稳定性。
+
+% -----------------------------
+\subsection{\S 6.2 基本单步法}
+
+\paragraph{Euler 法（显式）}
+\[
+y_{n+1} = y_n + h f(x_n,y_n).
+\]
+
+\paragraph{后退 Euler 法（隐式）}
+\[
+y_{n+1} = y_n + h f(x_{n+1}, y_{n+1}),
+\]
+迭代格式：
+\[
+\begin{cases}
+y_{n+1}^{(0)} = y_n + h f(x_n,y_n),\\
+y_{n+1}^{(k+1)} = y_n + h f(x_{n+1}, y_{n+1}^{(k)}).
+\end{cases}
+\]
+
+\paragraph{梯形法（隐式）}
+\[
+y_{n+1} = y_n + \frac{h}{2}\big[ f(x_n,y_n) + f(x_{n+1}, y_{n+1}) \big],
+\]
+迭代格式类似后退 Euler。
+
+\paragraph{改进 Euler 法（预测-校正）}
+\[
+\begin{cases}
+\bar{y}_{n+1} = y_n + h f(x_n,y_n),\\
+y_{n+1} = y_n + \dfrac{h}{2}\big[ f(x_n,y_n) + f(x_{n+1},\bar{y}_{n+1}) \big],
+\end{cases}
+\]
+或等价的 RK 表达形式（见讲义）。
+
+% -----------------------------
+\subsection{局部截断误差与阶}
+
+\paragraph{定义}
+设准确解为 $y(x)$，显式单步法形式为
+\[
+y_{n+1} = y_n + h\,\varphi(x_n,y_n,h).
+\]
+定义局部截断误差（Local Truncation Error, LTE）为
+\[
+T_{n+1} = y(x_{n+1}) - y(x_n) - h\,\varphi\big(x_n,y(x_n),h\big).
+\]
+
+\paragraph{阶的定义}
+若
+\[
+T_{n+1} = \mathcal{O}(h^{\,p+1}),
+\]
+则该方法称为 \textbf{$p$ 阶精度}。
+
+\paragraph{常用方法的阶}
+Euler 法：1 阶；改进 Euler 法（Heun 等）：2 阶。
+
+常用泰勒展开（用于截断误差推导）
+
+\paragraph{一、关于一元函数的泰勒展开}
+假设 $y\in C^{p+1}$，在 $x_n$ 处用步长 $h$ 展开：
+\[
+\begin{aligned}
+y(x_n+h) &= y(x_n) + h y'(x_n) + \frac{h^2}{2!} y''(x_n) + \cdots + \frac{h^p}{p!} y^{(p)}(x_n) \\
+&\qquad + \frac{h^{p+1}}{(p+1)!} y^{(p+1)}(\xi_n),\quad \xi_n\in(x_n,x_n+h).
+\end{aligned}
+\]
+推导截断误差时常取 $p=1$ 或 $p=2$。例如 $p=1$ 时：
+\[
+y(x_{n+1}) = y(x_n) + h y'(x_n) + \frac{h^2}{2} y''(\xi_n).
+\]
+
+\paragraph{二、关于多元函数（偏导形式）——用于含有 $\varphi(x_n,y(x_n),h)$ 的展开}
+设函数 $F(x,y,h)$ 在 $(x_n,y(x_n),0)$ 处具有足够阶偏导。取增量 $\Delta x=h,\ \Delta y = y(x_n+h)-y(x_n),\ \Delta h=h$，二阶偏导展开为：
+\[
+\begin{aligned}
+F(x_n+\Delta x,\ & y(x_n)+\Delta y,\ \Delta h) = F(x_n,y(x_n),0) \\
+& + F_x(x_n,y(x_n),0)\,\Delta x
+  + F_y(x_n,y(x_n),0)\,\Delta y
+  + F_h(x_n,y(x_n),0)\,\Delta h \\
+& + \tfrac12\Big[ F_{xx}(x_n,y(x_n),0)\,\Delta x^2
+  + 2 F_{xy}(x_n,y(x_n),0)\,\Delta x\,\Delta y \\
+&\qquad\qquad + 2 F_{xh}(x_n,y(x_n),0)\,\Delta x\,\Delta h
+  + F_{yy}(x_n,y(x_n),0)\,\Delta y^2 \\
+&\qquad\qquad + 2 F_{yh}(x_n,y(x_n),0)\,\Delta y\,\Delta h
+  + F_{hh}(x_n,y(x_n),0)\,\Delta h^2 \Big] \\
+& + \mathcal{O}\bigl(\|(\Delta x,\Delta y,\Delta h)\|^3\bigr).
+\end{aligned}
+\]
+其中下标如 $F_x,F_{xy},F_{hh}$ 表示一阶偏导、混合二阶偏导、二阶偏导。将 $\varphi(x_n,y(x_n),h)$ 视作 $F(x,y,h)$ 可得对应的偏导展开。例如：
+\[
+\varphi = \varphi(x_n,y(x_n),0) + \varphi_h(x_n,y(x_n),0)\,h + \varphi_y(x_n,y(x_n),0)\bigl( y(x_n+h)-y(x_n) \bigr) + \tfrac12\varphi_{hh} h^2 + \cdots.
+\]
+
+截断误差推导中的典型步骤
+\begin{enumerate}
+  \item 用一元泰勒展开表示 $y(x_{n+1})$。
+  \item 用微分方程 $y'(x_n)=f(x_n,y(x_n))$ 替换 $y'(x_n)$。
+  \item 将 $\varphi(x_n,y(x_n),h)$ 用偏导展开（关于 $h$ 与 $y$-增量）。
+  \item 代入 $T_{n+1}=y(x_{n+1})-y(x_n)-h\varphi(\cdot)$ 并整理 $h^k$ 的主项。
+  \item 若主项为 $\mathcal{O}(h^{p+1})$，则为 $p$ 阶。
+\end{enumerate}
+
+例（说明性）：
+若
+\[
+y(x_{n+1}) = y(x_n) + h f(x_n,y(x_n)) + \frac{h^2}{2} y''(\xi_n),
+\]
+且
+\[
+\varphi(x_n,y(x_n),h) = f(x_n,y(x_n)) + \tfrac12 h \Phi_1(x_n,y(x_n)) + \mathcal{O}(h^2),
+\]
+则
+\[
+\begin{aligned}
+T_{n+1} &= \bigl[ y(x_n) + h f(x_n,y(x_n)) + \tfrac{h^2}{2} y''(\xi_n) \bigr] - y(x_n) \\
+&\quad - h\bigl[ f(x_n,y(x_n)) + \tfrac12 h \Phi_1(x_n,y(x_n)) + \mathcal{O}(h^2) \bigr] \\
+&= \frac{h^2}{2} y''(\xi_n) - \frac{1}{2} h^2 \Phi_1(x_n,y(x_n)) + \mathcal{O}(h^3) \\
+&= \mathcal{O}(h^2).
+\end{aligned}
+\]
+因此该方法为一阶方法。若能使 $\tfrac{h^2}{2}y''(\xi_n) - \tfrac12 h^2 \Phi_1 = 0$，则可提升为二阶。
+
+\paragraph{小结}
+\begin{itemize}
+  \item 使用一元泰勒展开展开 $y(x_{n+1})$，得到关于 $h$ 和各阶导数的表达；
+  \item 使用多元偏导展开表示 $\varphi(x_n,y(x_n),h)$ 关于 $h$ 与 $y$-增量的展开；
+  \item 两者结合代入 $T_{n+1}$ 的定义，判断主项阶数从而确定方法阶数 $p$。
+\end{itemize}
+
+% -----------------------------
+\subsection{\S 6.4 显式 Runge--Kutta 方法}
+
+一般 $s$ 级显式 Runge--Kutta 方法：
+\[
+\begin{cases}
+y_{n+1} = y_n + h \sum_{i=1}^s b_i K_i,\\
+K_i = f\big( x_n + c_i h,\ y_n + h \sum_{j=1}^{i-1} a_{ij} K_j \big).
+\end{cases}
+\]
+
+\paragraph{一级方法（Euler 法）}
+\[
+y_{n+1} = y_n + h f(x_n,y_n).
+\]
+
+\paragraph{二级方法（一般形式）}
+\[
+\begin{cases}
+y_{n+1} = y_n + b_1 h K_1 + b_2 h K_2,\\
+K_1 = f(x_n,y_n),\\
+K_2 = f(x_n + c_2 h,\ y_n + a_{21} h K_1).
+\end{cases}
+\]
+条件：
+\[
+\text{一阶： } b_1 + b_2 = 1;\qquad
+\text{二阶： } b_2 c_2 = \tfrac12,\ \ b_2 a_{21} = \tfrac12.
+\]
+
+\paragraph{改进 Euler 法（Heun）}
+取 $b_1=b_2=\tfrac12,\ c_2=a_{21}=1$：
+\[
+\begin{cases}
+y_{n+1} = y_n + \dfrac{h}{2}(K_1 + K_2),\\
+K_1 = f(x_n,y_n),\ K_2 = f(x_n+h,\ y_n + h K_1).
+\end{cases}
+\]
+
+\paragraph{中点公式}
+取 $b_1=0,\ b_2=1,\ c_2=a_{21}=\tfrac12$：
+\[
+\begin{cases}
+y_{n+1} = y_n + h K_2,\\
+K_1 = f(x_n,y_n),\ K_2 = f(x_n+\tfrac{h}{2},\ y_n + \tfrac{h}{2} K_1).
+\end{cases}
+\]
+
+\paragraph{四级经典 Runge--Kutta（RK4）}
+\[
+\begin{cases}
+y_{n+1} = y_n + \dfrac{h}{6}(K_1 + 2K_2 + 2K_3 + K_4),\\
+K_1 = f(x_n,y_n),\\
+K_2 = f(x_n+\tfrac{h}{2},\ y_n + \tfrac{h}{2}K_1),\\
+K_3 = f(x_n+\tfrac{h}{2},\ y_n + \tfrac{h}{2}K_2),\\
+K_4 = f(x_n+h,\ y_n + h K_3).
+\end{cases}
+\]
+局部截断误差 $\mathcal{O}(h^5)$，阶为 4 阶。
+
+% -----------------------------
+\subsection{\S 6.5 单步法的收敛性与稳定性}
+
+\paragraph{收敛性定义}
+若 $h\to 0$ 时 $y_n\to y(x)$，则方法收敛。
+
+\paragraph{稳定性（模型方程 $y'=\lambda y$）}
+精确解： $y(x)=y_0 e^{\lambda (x-a)}$。数值解可写为
+\[
+y_{n+1} = R(\lambda h) y_n,
+\]
+若 $|R(\lambda h)|<1$，则方法绝对稳定。
+
+\paragraph{绝对稳定区间（实轴部分）示例}
+\begin{itemize}
+  \item Euler 法： $(-2,0)$；
+  \item 二级 R-K： $(-2,0)$；
+  \item 三级 R-K： $(-2.51,0)$；
+  \item 四级 R-K： $(-2.78,0)$。
+\end{itemize}
+
+% -----------------------------
+\subsection{\S 6.6 线性多步法}
+
+\paragraph{一般形式（$p+1$ 步）}
+\[
+y_{n+1} = \sum_{i=0}^p a_i y_{n-i} + h \sum_{i=-1}^p b_i f(x_{n-i}, y_{n-i}),
+\]
+其中 $b_{-1}=0$ 表示显式，$b_{-1}\neq 0$ 表示隐式。
+
+\paragraph{局部截断误差定义}
+\[
+T_{n+1} = y(x_{n+1}) - \sum_{i=0}^p a_i y(x_{n-i}) - h \sum_{i=-1}^p b_i y'(x_{n-i}).
+\]
+
+\paragraph{Taylor 展开与系数关系}
+对每一项在 $x_n$ 处展开：
+\[
+\begin{aligned}
+y(x_{n-i}) &= \sum_{j=0}^{\infty} \frac{(-i)^j}{j!} h^j y^{(j)}(x_n),\\
+y'(x_{n-i}) &= \sum_{j=1}^{\infty} \frac{(-i)^{j-1}}{(j-1)!} h^{j-1} y^{(j)}(x_n).
+\end{aligned}
+\]
+代入上式得
+\[
+T_{n+1} = \sum_{q=0}^{\infty} c_q h^q y^{(q)}(x_n),
+\]
+其中
+\[
+\begin{aligned}
+c_0 &= 1 - \sum_{i=0}^p a_i,\\
+c_1 &= 1 - \left[\sum_{i=0}^p (-i)a_i + \sum_{i=-1}^p b_i \right],\\
+c_q &= \frac{1}{q!} \left[1 - \sum_{i=0}^p (-i)^q a_i - q \sum_{i=-1}^p (-i)^{q-1} b_i \right],\quad q \ge 2.
+\end{aligned}
+\]
+
+若系数满足
+\[
+c_0 = c_1 = \cdots = c_r = 0,\quad c_{r+1} \neq 0,
+\]
+则该方法为 $r$ 阶方法，且局部截断误差主项为
+\[
+T_{n+1} = c_{r+1} h^{r+1} y^{(r+1)}(x_n) + \mathcal{O}(h^{r+2}),
+\]
+其中 $c_{r+1}$ 称为误差常数。
+
+\paragraph{相容性条件}
+由 $c_0 = c_1 = 0$ 得
+\[
+\sum_{i=0}^p a_i = 1,\qquad
+\sum_{i=0}^p (-i)a_i + \sum_{i=-1}^p b_i = 1.
+\]
+
+\paragraph{阶数与系数关系式}
+对阶数为 $r$ 的方法，系数需满足
+\[
+\begin{cases}
+\displaystyle \sum_{i=0}^p a_i = 1,\\[6pt]
+\displaystyle \sum_{i=0}^p (-i)a_i + \sum_{i=-1}^p b_i = 1,\\[6pt]
+\displaystyle \sum_{i=0}^p (-i)^2 a_i + 2\sum_{i=-1}^p (-i)b_i = 1,\\[6pt]
+\displaystyle \sum_{i=0}^p (-i)^3 a_i + 3\sum_{i=-1}^p (-i)^2 b_i = 1,\\[6pt]
+\quad\vdots
+\end{cases}
+\]
+一般写为：
+\[
+\sum_{i=0}^p (-i)^q a_i + q \sum_{i=-1}^p (-i)^{q-1} b_i = 1,\quad q=2,3,\dots,r.
+\]
+
+\paragraph{常用方法示例与误差常数}
+\begin{itemize}
+  \item \textbf{Simpson 方法（4 阶）：}
+  \[
+  y_{n+1} = y_{n-1} + \frac{h}{3}\bigl[f_{n+1} + 4f_n + f_{n-1}\bigr], \qquad C_5 = -\frac{1}{90}.
+  \]
+
+  \item \textbf{Milne 方法（4 阶）：}
+  \[
+  y_{n+1} = y_{n-3} + \frac{4h}{3}(2f_n - f_{n-1} + 2f_{n-2}), \qquad C_5 = \frac{14}{45}.
+  \]
+
+  \item \textbf{Hamming 方法（4 阶）：}
+  \[
+  y_{n+1} = \tfrac{1}{8}(9y_n - y_{n-2}) + \tfrac{3h}{8}(f_{n+1} + 2f_n - f_{n-1}), \qquad C_5 = -\tfrac{1}{80}.
+  \]
+
+  \item \textbf{显式 Adams 方法（4 步 4 阶）：}
+  \[
+  y_{n+1} = y_n + \frac{h}{24}\bigl[55f_n - 59f_{n-1} + 37f_{n-2} - 9f_{n-3}\bigr], \qquad C_5 = \frac{251}{720}.
+  \]
+
+  \item \textbf{隐式 Adams 方法（3 步 4 阶）：}
+  \[
+  y_{n+1} = y_n + \frac{h}{24}\bigl[9f_{n+1} + 19f_n - 5f_{n-1} + f_{n-2}\bigr], \qquad C_5 = -\frac{19}{720}.
+  \]
+\end{itemize}
+
+---
+
+\subsection{\S 6.7 线性多步法的收敛性与稳定性}
+
+\paragraph{根条件}
+定义特征多项式
+\[
+\rho(r) = r^{p+1} - \sum_{i=0}^p a_i r^{p-i}.
+\]
+若所有根满足 $|r_i|\le1$ 且模为1的根为单根，则称方法满足根条件。
+
+\paragraph{收敛性定理}
+若方法相容且满足根条件，则该方法收敛。
+
+\paragraph{绝对稳定性}
+定义第二特征多项式
+\[
+\sigma(r) = \sum_{i=-1}^p b_i r^{p-i},
+\]
+则整体特征方程为
+\[
+\pi(r;\lambda h) = \rho(r) - h\lambda \sigma(r).
+\]
+若其根满足 $|r_i(\lambda h)|<1$，则该方法在该区域绝对稳定。
+
+---
+
+\subsection{\S 6.8 预测-校正方法}
+
+PEC（Predict–Evaluate–Correct）格式：
+\begin{itemize}
+  \item P（预测）：用显式多步公式计算 $y_{n+1}^{(0)}$；
+  \item E（求值）：计算 $f_{n+1}^{(0)} = f(x_{n+1}, y_{n+1}^{(0)})$；
+  \item C（校正）：用隐式多步公式修正 $y_{n+1}^{(1)}$。
+\end{itemize}
+
+---
+
+\subsection{\S 6.9 一阶方程组与高阶方程}
+
+\paragraph{一阶方程组}
+\[
+\begin{cases}
+y' = f(x,y),\\
+y(x_0)=y_0.
+\end{cases}
+\]
+
+\paragraph{四阶 R-K 方法（向量形式）}
+同标量形式，但 $y$、$K_i$ 为向量。
+
+\paragraph{高阶方程化为一阶方程组}
+令
+\[
+y_1 = y,\quad y_2 = y',\quad \dots,\quad y_m = y^{(m-1)},
+\]
+则化为一阶方程组：
+\[
+\begin{cases}
+y_1' = y_2,\\
+y_2' = y_3,\\
+\vdots\\
+y_m' = f(x,y_1,\dots,y_m).
+\end{cases}
+\]
+
+
+% -----------------------------
+\section*{参考与索引（可选）}
+\begin{itemize}
+  \item 本笔记为讲义型整理，主要按课程讲稿与教科书传统章节组织（未列出具体参考书目，使用时可对照常见数值分析教材）。
+\end{itemize}
+
+\end{document}
